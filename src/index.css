@@ -73,8 +73,29 @@ All colors MUST be HSL.
   * {
     @apply border-border;
   }
-
+  
   body {
     @apply bg-background text-foreground;
+  }
+  
+  .mdx-editor-wrapper {
+    width: 100%;
+  }
+  
+  .mdx-editor-wrapper .mdxeditor {
+    background: transparent;
+    color: hsl(var(--foreground));
+    font-family: inherit;
+  }
+  
+  .mdx-editor-wrapper .mdxeditor-toolbar {
+    background: hsl(var(--muted));
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  
+  .mdx-editor-wrapper .mdxeditor-popup-container {
+    background: hsl(var(--popover));
+    border: 1px solid hsl(var(--border));
+    color: hsl(var(--foreground));
   }
 }

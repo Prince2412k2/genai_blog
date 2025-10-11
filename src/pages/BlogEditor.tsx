@@ -197,25 +197,26 @@ This demonstrates the blog generation feature. Connect an AI service for real ge
                   <ReactMarkdown>{content}</ReactMarkdown>
                 </div>
               ) : (
-                <MDXEditor
-                  markdown={content}
-                  onChange={setContent}
-                  plugins={[
-                    headingsPlugin(),
-                    listsPlugin(),
-                    quotePlugin(),
-                    thematicBreakPlugin(),
-                    markdownShortcutPlugin(),
-                    linkPlugin(),
-                    linkDialogPlugin(),
-                    imagePlugin(),
-                    tablePlugin(),
-                    codeBlockPlugin({ defaultCodeBlockLanguage: 'js' }),
-                    codeMirrorPlugin({ codeBlockLanguages: { js: 'JavaScript', css: 'CSS', html: 'HTML', ts: 'TypeScript', tsx: 'TypeScript (React)' } }),
-                    diffSourcePlugin({ viewMode: 'rich-text' })
-                  ]}
-                  contentEditableClassName="prose prose-lg max-w-none dark:prose-invert min-h-[600px]"
-                />
+                <div className="mdx-editor-wrapper">
+                  <MDXEditor
+                    markdown={content}
+                    onChange={setContent}
+                    plugins={[
+                      headingsPlugin(),
+                      listsPlugin(),
+                      quotePlugin(),
+                      thematicBreakPlugin(),
+                      markdownShortcutPlugin(),
+                      linkPlugin(),
+                      linkDialogPlugin(),
+                      imagePlugin(),
+                      tablePlugin(),
+                      codeBlockPlugin({ defaultCodeBlockLanguage: 'js' }),
+                      codeMirrorPlugin({ codeBlockLanguages: { js: 'JavaScript', css: 'CSS', html: 'HTML', ts: 'TypeScript', tsx: 'TypeScript (React)' } })
+                    ]}
+                    contentEditableClassName="prose prose-lg max-w-none dark:prose-invert min-h-[600px] focus:outline-none"
+                  />
+                </div>
               )}
             </CardContent>
           </Card>
