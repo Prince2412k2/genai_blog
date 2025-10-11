@@ -5,12 +5,14 @@ import { Blog } from '@/types/blog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, Sparkles, X, Eye, Code } from 'lucide-react';
+import { ArrowLeft, Save, Sparkles, X, Eye, Code, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import { MDXEditor, headingsPlugin, listsPlugin, quotePlugin, thematicBreakPlugin, markdownShortcutPlugin, linkPlugin, linkDialogPlugin, imagePlugin, tablePlugin, codeBlockPlugin, codeMirrorPlugin, diffSourcePlugin } from '@mdxeditor/editor';
+import '@mdxeditor/editor/style.css';
 
 const BlogEditor = () => {
   const { id } = useParams();
@@ -21,6 +23,7 @@ const BlogEditor = () => {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [editorMode, setEditorMode] = useState<'raw' | 'edit' | 'view'>('edit');
 
   useEffect(() => {
     if (!storage.isAdmin()) {
@@ -120,12 +123,40 @@ This demonstrates the blog generation feature. Connect an AI service for real ge
       <header className="border-b border-border bg-card sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" asChild>
-              <Link to="/admin">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
-              </Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" asChild>
+                <Link to="/admin">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Dashboard
+                </Link>
+              </Button>
+              <div className="flex gap-1 border border-border rounded-md p-1">
+                <Button
+                  variant={editorMode === 'raw' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setEditorMode('raw')}
+                >
+                  <Code className="w-4 h-4 mr-2" />
+                  Raw
+                </Button>
+                <Button
+                  variant={editorMode === 'edit' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setEditorMode('edit')}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
+                <Button
+                  variant={editorMode === 'view' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setEditorMode('view')}
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  View
+                </Button>
+              </div>
+            </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleGenerateBlog} disabled={isGenerating}>
                 <Sparkles className="w-4 h-4 mr-2" />
@@ -140,7 +171,7 @@ This demonstrates the blog generation feature. Connect an AI service for real ge
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+      <main className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -153,55 +184,42 @@ This demonstrates the blog generation feature. Connect an AI service for real ge
             </CardHeader>
           </Card>
 
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Card className="h-[600px] flex flex-col">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Code className="w-4 h-4 text-muted-foreground" />
-                  <CardTitle className="text-base">Editor</CardTitle>
-                </div>
-                <CardDescription>Write in Markdown</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1 p-0">
+          <Card className="min-h-[600px]">
+            <CardContent className="p-6">
+              {editorMode === 'raw' ? (
                 <Textarea
-                  placeholder="Write your blog content in Markdown...
-
-# Heading 1
-## Heading 2
-
-**Bold text** and *italic text*
-
-- Bullet point
-- Another point
-
-```code block```"
+                  placeholder="Write your blog content in Markdown..."
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className="h-full font-mono text-sm resize-none rounded-none border-0 focus-visible:ring-0"
+                  className="min-h-[600px] font-mono text-sm resize-none border-0 focus-visible:ring-0"
                 />
-              </CardContent>
-            </Card>
-
-            <Card className="h-[600px] flex flex-col">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-muted-foreground" />
-                  <CardTitle className="text-base">Preview</CardTitle>
+              ) : editorMode === 'view' ? (
+                <div className="prose prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-p:text-foreground prose-p:leading-7 prose-li:text-foreground prose-strong:text-foreground prose-strong:font-semibold prose-code:text-primary prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted prose-pre:border prose-pre:border-border">
+                  <ReactMarkdown>{content}</ReactMarkdown>
                 </div>
-                <CardDescription>Live preview</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto">
-                {title && <h1 className="text-3xl font-bold mb-6">{title}</h1>}
-                {content ? (
-                  <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-foreground prose-p:leading-7 prose-li:text-foreground prose-strong:text-foreground prose-strong:font-semibold prose-code:text-primary prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted prose-pre:border prose-pre:border-border">
-                    <ReactMarkdown>{content}</ReactMarkdown>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-sm">Start typing to see preview...</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+              ) : (
+                <MDXEditor
+                  markdown={content}
+                  onChange={setContent}
+                  plugins={[
+                    headingsPlugin(),
+                    listsPlugin(),
+                    quotePlugin(),
+                    thematicBreakPlugin(),
+                    markdownShortcutPlugin(),
+                    linkPlugin(),
+                    linkDialogPlugin(),
+                    imagePlugin(),
+                    tablePlugin(),
+                    codeBlockPlugin({ defaultCodeBlockLanguage: 'js' }),
+                    codeMirrorPlugin({ codeBlockLanguages: { js: 'JavaScript', css: 'CSS', html: 'HTML', ts: 'TypeScript', tsx: 'TypeScript (React)' } }),
+                    diffSourcePlugin({ viewMode: 'rich-text' })
+                  ]}
+                  contentEditableClassName="prose prose-lg max-w-none dark:prose-invert min-h-[600px]"
+                />
+              )}
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
