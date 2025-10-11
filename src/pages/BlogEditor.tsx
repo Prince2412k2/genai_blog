@@ -120,49 +120,21 @@ This demonstrates the blog generation feature. Connect an AI service for real ge
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" asChild>
-                <Link to="/admin">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Dashboard
-                </Link>
-              </Button>
-              <div className="flex gap-1 border border-border rounded-md p-1">
-                <Button
-                  variant={editorMode === 'raw' ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setEditorMode('raw')}
-                >
-                  <Code className="w-4 h-4 mr-2" />
-                  Raw
-                </Button>
-                <Button
-                  variant={editorMode === 'edit' ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setEditorMode('edit')}
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Edit
-                </Button>
-                <Button
-                  variant={editorMode === 'view' ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setEditorMode('view')}
-                >
-                  <Eye className="w-4 h-4 mr-2" />
-                  View
-                </Button>
-              </div>
-            </div>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/admin">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Link>
+            </Button>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={handleGenerateBlog} disabled={isGenerating}>
+              <Button variant="outline" size="sm" onClick={handleGenerateBlog} disabled={isGenerating}>
                 <Sparkles className="w-4 h-4 mr-2" />
-                {isGenerating ? 'Generating...' : 'Generate Blog'}
+                {isGenerating ? 'Generating...' : 'Generate'}
               </Button>
-              <Button onClick={handleSave}>
+              <Button size="sm" onClick={handleSave}>
                 <Save className="w-4 h-4 mr-2" />
                 Save
               </Button>
@@ -173,25 +145,52 @@ This demonstrates the blog generation feature. Connect an AI service for real ge
 
       <main className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
+          <Card className="border-0 shadow-none">
+            <CardHeader className="px-0">
               <Input
-                placeholder="Blog Title"
+                placeholder="Untitled"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="text-3xl font-bold border-0 px-0 focus-visible:ring-0 placeholder:text-muted-foreground/50"
+                className="text-4xl font-bold border-0 px-0 focus-visible:ring-0 placeholder:text-muted-foreground/30"
               />
             </CardHeader>
           </Card>
 
-          <Card className="min-h-[600px]">
-            <CardContent className="p-6">
+          <div className="flex items-center justify-end gap-1 px-1">
+            <Button
+              variant={editorMode === 'raw' ? 'secondary' : 'ghost'}
+              size="icon"
+              onClick={() => setEditorMode('raw')}
+              className="h-8 w-8"
+            >
+              <Code className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={editorMode === 'edit' ? 'secondary' : 'ghost'}
+              size="icon"
+              onClick={() => setEditorMode('edit')}
+              className="h-8 w-8"
+            >
+              <FileText className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={editorMode === 'view' ? 'secondary' : 'ghost'}
+              size="icon"
+              onClick={() => setEditorMode('view')}
+              className="h-8 w-8"
+            >
+              <Eye className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <Card className="min-h-[600px] border-border/50">
+            <CardContent className="p-8">
               {editorMode === 'raw' ? (
                 <Textarea
                   placeholder="Write your blog content in Markdown..."
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className="min-h-[600px] font-mono text-sm resize-none border-0 focus-visible:ring-0"
+                  className="min-h-[600px] font-mono text-sm resize-none border-0 focus-visible:ring-0 bg-transparent"
                 />
               ) : editorMode === 'view' ? (
                 <div className="prose prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-p:text-foreground prose-p:leading-7 prose-li:text-foreground prose-strong:text-foreground prose-strong:font-semibold prose-code:text-primary prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted prose-pre:border prose-pre:border-border">
