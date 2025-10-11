@@ -4,15 +4,12 @@ import { storage } from '@/lib/storage';
 import { Blog } from '@/types/blog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Save, Sparkles, X, Eye, Code, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
-import { MDXEditor, headingsPlugin, listsPlugin, quotePlugin, thematicBreakPlugin, markdownShortcutPlugin, linkPlugin, linkDialogPlugin, imagePlugin, tablePlugin, codeBlockPlugin, codeMirrorPlugin, diffSourcePlugin } from '@mdxeditor/editor';
-import '@mdxeditor/editor/style.css';
+import MDEditor from '@uiw/react-md-editor';
 
 const BlogEditor = () => {
   const { id } = useParams();
@@ -183,41 +180,19 @@ This demonstrates the blog generation feature. Connect an AI service for real ge
             </Button>
           </div>
 
-          <Card className="min-h-[600px] border-border/50">
-            <CardContent className="p-8">
-              {editorMode === 'raw' ? (
-                <Textarea
-                  placeholder="Write your blog content in Markdown..."
+          <Card className="min-h-[600px] border-border/50 overflow-hidden">
+            <CardContent className="p-0">
+              <div data-color-mode="light" className="dark:data-color-mode-dark">
+                <MDEditor
                   value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="min-h-[600px] font-mono text-sm resize-none border-0 focus-visible:ring-0 bg-transparent"
+                  onChange={(val) => setContent(val || '')}
+                  preview={editorMode === 'view' ? 'preview' : editorMode === 'edit' ? 'live' : 'edit'}
+                  height={600}
+                  visibleDragbar={false}
+                  hideToolbar={editorMode === 'view'}
+                  className="!border-0"
                 />
-              ) : editorMode === 'view' ? (
-                <div className="prose prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-p:text-foreground prose-p:leading-7 prose-li:text-foreground prose-strong:text-foreground prose-strong:font-semibold prose-code:text-primary prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted prose-pre:border prose-pre:border-border">
-                  <ReactMarkdown>{content}</ReactMarkdown>
-                </div>
-              ) : (
-                <div className="mdx-editor-wrapper">
-                  <MDXEditor
-                    markdown={content}
-                    onChange={setContent}
-                    plugins={[
-                      headingsPlugin(),
-                      listsPlugin(),
-                      quotePlugin(),
-                      thematicBreakPlugin(),
-                      markdownShortcutPlugin(),
-                      linkPlugin(),
-                      linkDialogPlugin(),
-                      imagePlugin(),
-                      tablePlugin(),
-                      codeBlockPlugin({ defaultCodeBlockLanguage: 'js' }),
-                      codeMirrorPlugin({ codeBlockLanguages: { js: 'JavaScript', css: 'CSS', html: 'HTML', ts: 'TypeScript', tsx: 'TypeScript (React)' } })
-                    ]}
-                    contentEditableClassName="prose prose-lg max-w-none dark:prose-invert min-h-[600px] focus:outline-none"
-                  />
-                </div>
-              )}
+              </div>
             </CardContent>
           </Card>
 
