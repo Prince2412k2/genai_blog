@@ -1,13 +1,11 @@
 export interface Blog {
   id: string;
+  created_at: string;
   title: string;
-  content: string;
-  tags: string[];
-  likes: number;
-  views: number;
-  generationCost?: number;
-  createdAt: string;
-  updatedAt: string;
+  raw: string;
+  user: string;
+  cost: number;
+  tags?: string[];
 }
 
 export interface Analytics {
