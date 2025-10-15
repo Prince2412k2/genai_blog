@@ -1,103 +1,126 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { storage } from '@/lib/storage';
-import { Blog } from '@/types/blog';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import { Heart, Eye, Calendar, ArrowLeft } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import { Blog } from '@/types/blog';
+import { api } from '@/lib/api';
+import { ArrowLeft } from 'lucide-react';
+import { useCreateBlockNote } from '@blocknote/react';
+import { BlockNoteView } from '@blocknote/mantine';
+import '@blocknote/mantine/style.css';
 
 const BlogView = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [blog, setBlog] = useState<Blog | null>(null);
-  const [liked, setLiked] = useState(false);
+  const [content, setContent] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  const editor = useCreateBlockNote({
+    initialContent: content || [],
+  });
 
   useEffect(() => {
-    if (id) {
-      const foundBlog = storage.getBlog(id);
-      if (foundBlog) {
-        setBlog(foundBlog);
-        storage.incrementViews(id);
-      } else {
+    const loadBlog = async () => {
+      if (!id) {
         navigate('/');
+        return;
       }
-    }
+
+      try {
+        const [blogData, contentData] = await Promise.all([
+          api.getBlog(id),
+          api.getBlogContent(id)
+        ]);
+
+        if (!blogData) {
+          navigate('/');
+          return;
+        }
+
+        setBlog(blogData);
+        setContent(contentData);
+      } catch (error) {
+        console.error('Failed to load blog:', error);
+        navigate('/');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBlog();
   }, [id, navigate]);
 
-  const handleLike = () => {
-    if (id && !liked) {
-      storage.incrementLikes(id);
-      setBlog(storage.getBlog(id) || null);
-      setLiked(true);
+  useEffect(() => {
+    if (content && editor) {
+      editor.replaceBlocks(editor.document, content);
     }
-  };
-
-  if (!blog) return null;
+  }, [content, editor]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" asChild>
-            <Link to="/">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Blogs
-            </Link>
-          </Button>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-primary/5 to-accent/5">
+        <div className="text-center">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+          <p className="mt-4 text-muted-foreground">Loading blog...</p>
         </div>
-      </header>
+      </div>
+    );
+  }
 
-      <main className="container mx-auto px-4 py-12 max-w-4xl">
-        <article>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{blog.title}</h1>
-          
-          <div className="flex items-center gap-4 text-muted-foreground mb-6">
-            <span className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              {formatDate(blog.createdAt)}
-            </span>
-            <span className="flex items-center gap-1">
-              <Eye className="w-4 h-4" />
-              {blog.views} views
-            </span>
-          </div>
+  if (!blog) return null;
 
-          <div className="flex flex-wrap gap-2 mb-8">
-            {blog.tags.map((tag, index) => (
-              <Badge key={index} variant="secondary">
-                {tag}
-              </Badge>
-            ))}
-          </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/5">
+      <div className="container mx-auto px-4 py-12 max-w-4xl">
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/')}
+          className="mb-8 hover:bg-primary/10"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Blogs
+        </Button>
 
-          <Card className="p-8 mb-8">
-            <div className="prose prose-lg max-w-none dark:prose-invert">
-              <ReactMarkdown>{blog.content}</ReactMarkdown>
+        <article className="bg-card/50 backdrop-blur-sm rounded-lg shadow-2xl border border-primary/10 p-8 md:p-12">
+          <header className="mb-8 border-b border-border pb-8">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              {blog.title}
+            </h1>
+            
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
+              <span>{formatDate(blog.created_at)}</span>
+              {blog.cost && (
+                <span className="text-xs bg-primary/10 px-2 py-1 rounded">
+                  Cost: ${blog.cost.toFixed(4)}
+                </span>
+              )}
             </div>
-          </Card>
 
-          <div className="flex items-center gap-4">
-            <Button
-              onClick={handleLike}
-              variant={liked ? "default" : "outline"}
-              className="gap-2"
-            >
-              <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} />
-              {blog.likes} Likes
-            </Button>
+            {blog.tags && blog.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {blog.tags.map((tag, index) => (
+                  <Badge key={index} variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </header>
+
+          <div className="prose prose-lg max-w-none dark:prose-invert">
+            <BlockNoteView editor={editor} editable={false} theme="light" />
           </div>
         </article>
-      </main>
+      </div>
     </div>
   );
 };
