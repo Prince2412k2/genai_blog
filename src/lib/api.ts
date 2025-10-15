@@ -82,7 +82,9 @@ export const api = {
       },
       body: JSON.stringify({ summary }),
     });
+      console.log(response.text)
     if (!response.ok) throw new Error('Failed to generate blog');
+
     return response.json();
   },
 

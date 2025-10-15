@@ -36,8 +36,8 @@ export const useAuth = () => {
   };
 
   const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
+    // const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl ="https://expert-dollop-q7vj69rqvr9vhx5g7-8080.app.github.dev/"
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -52,7 +52,7 @@ export const useAuth = () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/`
+        redirectTo: "https://expert-dollop-q7vj69rqvr9vhx5g7-8080.app.github.dev/"//`${window.location.origin}/`
       }
     });
     return { error };

@@ -32,12 +32,12 @@ const BlogEditor = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user, session } = useAuth();
+  const { user, session, loading } = useAuth();
 
   const editor = useCreateBlockNote();
 
   useEffect(() => {
-    if (!user) {
+    if (!loading && !user) {
       navigate('/auth');
       return;
     }
@@ -45,7 +45,7 @@ const BlogEditor = () => {
     if (id) {
       loadBlog();
     }
-  }, [id, user, navigate]);
+  }, [id, user, navigate, loading]);
 
   const loadBlog = async () => {
     try {
