@@ -5,39 +5,56 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Blog } from '@/types/blog';
-import { api } from '@/lib/api';
+import * as api from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { PenSquare, Trash2, Plus, LogOut, Eye } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [totalCost, setTotalCost] = useState(0);
+  const [totalGenerationCost, setTotalGenerationCost] = useState(0);
+  const [totalInputTokens, setTotalInputTokens] = useState(0);
+  const [totalOutputTokens, setTotalOutputTokens] = useState(0);
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!user) {
+    if (!loading && !user) {
       navigate('/auth');
       return;
     }
-    
-    loadBlogs();
-  }, [user, navigate]);
+    if (user) {
+      loadBlogs();
+      loadTotalCost();
+    }
+  }, [user, loading, navigate]);
 
   const loadBlogs = async () => {
     try {
       const data = await api.getBlogs();
       setBlogs(data);
-      
-      const cost = data.reduce((sum, blog) => sum + (blog.cost || 0), 0);
-      setTotalCost(cost);
     } catch (error) {
       console.error('Failed to load blogs:', error);
       toast({
         title: 'Error',
         description: 'Failed to load blogs',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const loadTotalCost = async () => {
+    try {
+      const { totalCost, totalInputTokens, totalOutputTokens } = await api.getTotalCost();
+      setTotalGenerationCost(totalCost);
+      setTotalInputTokens(totalInputTokens);
+      setTotalOutputTokens(totalOutputTokens);
+    } catch (error) {
+      console.error('Failed to load total cost:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load total cost',
         variant: 'destructive',
       });
     }
@@ -114,7 +131,25 @@ const AdminDashboard = () => {
                 <CardTitle className="text-sm text-muted-foreground">Total Generation Cost</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-primary">{formatCurrency(totalCost)}</p>
+                <p className="text-3xl font-bold text-primary">{formatCurrency(totalGenerationCost)}</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card/50 backdrop-blur-sm border-primary/10">
+              <CardHeader>
+                <CardTitle className="text-sm text-muted-foreground">Total Input Tokens</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-primary">{totalInputTokens.toLocaleString()}</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card/50 backdrop-blur-sm border-primary/10">
+              <CardHeader>
+                <CardTitle className="text-sm text-muted-foreground">Total Output Tokens</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-primary">{totalOutputTokens.toLocaleString()}</p>
               </CardContent>
             </Card>
 

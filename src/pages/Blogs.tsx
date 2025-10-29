@@ -4,12 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Blog } from '@/types/blog';
-import { api } from '@/lib/api';
+
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { PenSquare, LogIn, LogOut } from 'lucide-react';
 
 const Blogs = () => {
-  const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [blogs, setBlogs] = useState<{title:string,blogId:string,tags:string[] | null}[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
@@ -20,8 +21,9 @@ const Blogs = () => {
 
   const loadBlogs = async () => {
     try {
-      const data = await api.getBlogs();
-      setBlogs(data);
+      const { data, error } = await supabase.from('blog').select('id, title, tags');
+      if (error) throw error;
+      setBlogs(data.map(blog => ({ ...blog, blogId: blog.id })));
     } catch (error) {
       console.error('Failed to load blogs:', error);
     } finally {
@@ -91,36 +93,25 @@ const Blogs = () => {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {blogs.map((blog) => (
-              <Link key={blog.id} to={`/blog/${blog.id}`}>
+            {blogs.map(({title,blogId,tags}) => (
+              <Link key={blogId} to={`/blog/${blogId}/${encodeURIComponent(title)}`}>
                 <Card className="h-full hover:shadow-2xl transition-all duration-300 border-primary/10 hover:border-primary/30 bg-card/50 backdrop-blur-sm group">
                   <CardHeader>
                     <div className="flex justify-between items-start mb-2">
                       <CardTitle className="text-xl group-hover:text-primary transition-colors line-clamp-2">
-                        {blog.title}
+                        {title}
                       </CardTitle>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {formatDate(blog.created_at)}
-                    </p>
                   </CardHeader>
                   <CardContent>
-                    <div className="prose prose-sm line-clamp-3 mb-4 text-muted-foreground">
-                      {blog.raw?.substring(0, 150)}...
-                    </div>
-                    {blog.tags && blog.tags.length > 0 && (
+                    {tags && tags.length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-4">
-                        {blog.tags.slice(0, 3).map((tag, index) => (
+                        {tags.slice(0, 3).map((tag, index) => (
                           <Badge key={index} variant="secondary" className="bg-primary/10 text-primary border-primary/20">
                             {tag}
                           </Badge>
                         ))}
                       </div>
-                    )}
-                    {blog.cost && (
-                      <p className="text-xs text-muted-foreground">
-                        Generation cost: ${blog.cost.toFixed(4)}
-                      </p>
                     )}
                   </CardContent>
                 </Card>

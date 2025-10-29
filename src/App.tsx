@@ -20,7 +20,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Blogs />} />
-          <Route path="/blog/:id" element={<BlogView />} />
+          <Route path="/blog/:id/:title" element={<BlogView />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/editor" element={<BlogEditor />} />

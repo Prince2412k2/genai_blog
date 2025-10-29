@@ -13,8 +13,29 @@ export type Database = {
     PostgrestVersion: "13.0.5"
   }
   public: {
-    Tables: {
-      [_ in never]: never
+      blog: {
+        Row: {
+          id: string
+          title: string
+          content: Json
+          tags: string[] | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          title: string
+          content: Json
+          tags?: string[] | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          title?: string
+          content?: Json
+          tags?: string[] | null
+          created_at?: string | null
+        }
+      }
     }
     Views: {
       [_ in never]: never

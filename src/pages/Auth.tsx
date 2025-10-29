@@ -14,13 +14,13 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user, signIn, signUp, signInWithGoogle } = useAuth();
+  const { user, signIn, signUp, signInWithGoogle, loading } = useAuth();
 
   useEffect(() => {
-    if (user) {
+    if (!loading && user) {
       navigate('/admin');
     }
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();

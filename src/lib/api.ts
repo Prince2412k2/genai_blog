@@ -1,96 +1,122 @@
 import { Blog } from '@/types/blog';
 
-const BASE_URL = 'https://hovwddwgujmqxhjhoqqy.supabase.co/functions/v1';
-const BUCKET_URL = 'https://hovwddwgujmqxhjhoqqy.storage.supabase.co/storage/v1/object/public/blog';
+const API_URL = import.meta.env.VITE_API_URL;
 
-export const api = {
-  getBlogs: async (): Promise<Blog[]> => {
-    const response = await fetch(`${BASE_URL}/get-blogs`);
-    if (!response.ok) throw new Error('Failed to fetch blogs');
-    return response.json();
-  },
+import { supabase } from '@/integrations/supabase/client';
 
-  getBlog: async (id: string): Promise<Blog | undefined> => {
-    const blogs = await api.getBlogs();
-    return blogs.find(b => b.id === id);
-  },
+export const getBlog = async (id: string): Promise<Blog | null> => {
+  const { data, error } = await supabase.functions.invoke(`get-blog?id=${id}`);
 
-  getBlogContent: async (id: string): Promise<any> => {
-    const response = await fetch(`${BUCKET_URL}/${id}.json`);
-    if (!response.ok) throw new Error('Failed to fetch blog content');
-    return response.json();
-  },
+  if (error) {
+    console.error('Error fetching blog:', error);
+    return null;
+  }
 
-  addBlog: async (blog: Partial<Blog>, content: any, token?: string) => {
-    const response = await fetch(`${BASE_URL}/add-blog`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
-      body: JSON.stringify({ blog, content }),
-    });
-    if (!response.ok) throw new Error('Failed to add blog');
-    return response.json();
-  },
+  return data.blog as Blog;
+};
 
-  updateBlog: async (blog: Blog, content: any, token?: string) => {
-    const response = await fetch(`${BASE_URL}/update-blog`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
-      body: JSON.stringify({ blog, content }),
-    });
-    if (!response.ok) throw new Error('Failed to update blog');
-    return response.json();
-  },
+export const getBlogs = async (): Promise<Blog[]> => {
+  const { data, error } = await supabase.functions.invoke('get-blogs');
 
-  deleteBlog: async (blogId: string, token?: string) => {
-    const response = await fetch(`${BASE_URL}/delete-blog`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
-      body: JSON.stringify({ blog_id: blogId }),
-    });
-    if (!response.ok) throw new Error('Failed to delete blog');
-    return response.json();
-  },
+  if (error) {
+    console.error('Error fetching blogs:', error);
+    return [];
+  }
 
-  generateTags: async (content: string, token?: string) => {
-    const response = await fetch(`${BASE_URL}/tags`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
-      body: JSON.stringify({ content }),
-    });
-    if (!response.ok) throw new Error('Failed to generate tags');
-    return response.json();
-  },
+  return data.blogs as Blog[];
+};
 
-  generateBlog: async (summary: string, token?: string) => {
-    const response = await fetch(`${BASE_URL}/fill`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
-      body: JSON.stringify({ summary }),
-    });
-      console.log(response.text)
-    if (!response.ok) throw new Error('Failed to generate blog');
+export const generateBlog = async (summary: string, mood: string, userId: string, blogId?: string | null): Promise<{ title: string; tags: string[]; content: string }> => {
+  const { data, error } = await supabase.functions.invoke('fill', {
+    body: { summary, mood, user_id: userId, blog_id: blogId },
+  });
 
-    return response.json();
-  },
+  if (error) {
+    console.error('Error generating blog:', error);
+    throw new Error('Failed to generate blog');
+  }
 
-  getScore: async (): Promise<{ total: number; blogIds: string[] }> => {
-    const response = await fetch(`${BUCKET_URL}/score.json`);
-    if (!response.ok) throw new Error('Failed to fetch score');
-    return response.json();
-  },
+  return data;
+};
+
+export const updateBlog = async (blog: Blog, content: any): Promise<void> => {
+  const { data, error } = await supabase.functions.invoke('update-blog', {
+    body: {
+      id: blog.id,
+      title: blog.title,
+      raw: content,
+    },
+  });
+
+  if (error) {
+    console.error('Error updating blog:', error);
+    throw new Error('Failed to update blog');
+  }
+};
+
+export const addBlog = async (blog: Partial<Blog>): Promise<Blog> => {
+  const { data, error } = await supabase.functions.invoke('add-blog', {
+    body: {
+      title: blog.title,
+      raw: blog.content,
+      tags: blog.tags,
+    },
+  });
+
+  if (error) {
+    console.error('Error adding blog:', error);
+    throw new Error('Failed to add blog');
+  }
+
+  return data.blog as Blog;
+};
+
+import { createClient } from '@supabase/supabase-js';
+
+// ... other imports
+
+export const deleteBlog = async (id: string, userId?: string): Promise<void> => {
+  const { data, error } = await supabase.functions.invoke('delete-blog', {
+    body: { id },
+  });
+
+  if (error) {
+    console.error('Error deleting blog:', error);
+    throw new Error('Failed to delete blog');
+  }
+};
+
+export const getTotalCost = async (): Promise<{ totalCost: number; totalInputTokens: number; totalOutputTokens: number }> => {
+  const { data, error } = await supabase.functions.invoke('get-total-cost');
+
+  if (error) {
+    console.error('Error fetching total cost:', error);
+    return { totalCost: 0, totalInputTokens: 0, totalOutputTokens: 0 };
+  }
+
+  return data;
+};
+
+export const updateGenerationBlogId = async (generationId: string, blogId: string): Promise<void> => {
+  const { error } = await supabase.functions.invoke('update-generation-blog-id', {
+    body: { generation_id: generationId, blog_id: blogId },
+  });
+
+  if (error) {
+    console.error('Error updating generation blog ID:', error);
+    throw new Error('Failed to update generation blog ID');
+  }
+};
+
+export const getTagsFromMarkdown = async (markdownContent: string, userId: string, blogId?: string): Promise<string[]> => {
+  const { data, error } = await supabase.functions.invoke('tags', {
+    body: { markdown: markdownContent, user_id: userId, blog_id: blogId },
+  });
+
+  if (error) {
+    console.error('Error fetching tags from markdown:', error);
+    return [];
+  }
+
+  return data.tags;
 };

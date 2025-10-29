@@ -2,9 +2,7 @@ export interface Blog {
   id: string;
   created_at: string;
   title: string;
-  raw: string;
-  user: string;
-  cost: number;
+  content: any;
   tags?: string[];
 }
 
