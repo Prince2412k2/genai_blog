@@ -49,7 +49,7 @@ const Index = () => {
           Start Writing for Free
         </Button>
         <p className="mt-4 text-sm text-muted-foreground">
-          Or <a href="https://genai-blog-kappa.vercel.app/be50b075-2d73-429b-88cf-0a6279de8ca5" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">see an example site</a>
+          Or <a href="https://md-muse.vercel.app/be50b075-2d73-429b-88cf-0a6279de8ca5" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">see an example site</a>
         </p>
       </main>
 
@@ -95,7 +95,7 @@ const Index = () => {
             <div>
               <h4 className="font-semibold mb-2">Links</h4>
               <p className="text-sm text-muted-foreground">
-                <a href="https://github.com/your_username/your_project_name" target="_blank" rel="noopener noreferrer" className="hover:text-primary">GitHub Repository</a>
+                <a href="https://github.com/Prince2412k2/genai_blog" target="_blank" rel="noopener noreferrer" className="hover:text-primary">GitHub Repository</a>
               </p>
               <p className="text-sm text-muted-foreground">
                 <a href="https://prince2412k2.github.io/Portfolio/" target="_blank" rel="noopener noreferrer" className="hover:text-primary">Portfolio</a>
