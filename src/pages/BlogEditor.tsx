@@ -345,7 +345,7 @@ const BlogEditor = () => {
 
           <Card className="bg-card/50 backdrop-blur-sm border-primary/10">
             <CardContent className="pt-6">
-              <BlockNoteView editor={editor} theme="dark" />
+              <BlockNoteView editor={editor} theme="light" />
             </CardContent>
           </Card>
         </div>

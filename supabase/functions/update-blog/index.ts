@@ -38,7 +38,7 @@ serve(async (req) => {
     if (dbError) throw dbError;
 
     // 2. Upload ProseMirror JSON to storage
-    const blogStorageObject = { title, tags, content };
+    const blogStorageObject = content;
     const { error: storageError } = await supabase.storage
       .from("blogs")
       .upload(`${id}.json`, JSON.stringify(blogStorageObject, null, 2), {
