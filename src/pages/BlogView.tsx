@@ -15,28 +15,44 @@ const BlogView = () => {
   const [loading, setLoading] = useState(true);
   const editor = useCreateBlockNote();
   useEffect(() => {
-    const loadBlog = async () => {
-      if (!id) {
-        navigate("/");
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase.from('blog').select('content').eq('id', id).single();
-        if (error) throw error;
-
-        editor.replaceBlocks(editor.document, data.content);
-      } catch (err) {
-        console.error("Failed to load blog:", err);
-        navigate("/");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadBlog();
-  }, [id, navigate, editor]);
-  if (loading || !editor) {
+            const loadBlog = async () => {
+              if (!id) {
+                navigate("/");
+                return;
+              }
+    
+              console.log("BlogView: Loading blog with ID:", id);
+              const filePath = `${id}.json`;
+              console.log("BlogView: Fetching from storage path:", filePath);
+    
+              try {
+                const { data: fileData, error: fileError } = await supabase.storage.from('blogs').download(filePath);
+                if (fileError) {
+                  console.error("BlogView: Error downloading file:", fileError);
+                  throw fileError;
+                }
+    
+                if (!fileData) {
+                  console.error("BlogView: Blog file not found for ID:", id);
+                  throw new Error("Blog file not found.");
+                }
+    
+                const textContent = await fileData.text();
+                console.log("BlogView: Raw text content:", textContent);
+                const blogContent = JSON.parse(textContent);
+                console.log("BlogView: Parsed blog content:", blogContent);
+    
+                editor.replaceBlocks(editor.document, blogContent);
+              } catch (err) {
+                console.error("BlogView: Failed to load blog:", err);
+                navigate("/");
+              } finally {
+                setLoading(false);
+              }
+            };
+    
+            loadBlog();
+          }, [id, navigate, editor]);  if (loading || !editor) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-primary/5 to-accent/5">
         <div className="text-center">

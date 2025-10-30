@@ -44,48 +44,15 @@ serve(async (req)=>{
       });
     }
     const user_id = userData.user.id;
-    const blogId = crypto.randomUUID();
-    const rawFileName = `${blogId}.json`;
-    // Upload blog JSON
-    const { error: rawUploadError } = await supabase.storage.from("blogs").upload(rawFileName, JSON.stringify(raw), {
-      contentType: "application/json"
-    });
-    if (rawUploadError) throw rawUploadError;
     // Insert DB entry
     const { data: blog, error: dbError } = await supabase.from("blog").insert({
-      id: blogId,
       title,
-      raw: rawFileName,
+      raw,
       tags,
       user: user_id
     }).select().single();
     if (dbError) throw dbError;
-    // Update score.json
-    const scoreFileName = "score.json";
-    let score = {
-      total: 0,
-      blogIds: []
-    };
-    const { data: existingScoreFile, error: downloadError } = await supabase.storage.from("blogs").download(scoreFileName);
-    if (!downloadError && existingScoreFile) {
-      try {
-        const text = await existingScoreFile.text();
-        score = JSON.parse(text);
-      } catch (_) {
-        console.warn("Malformed score.json, resetting...");
-      }
-    }
-    score.total += 1;
-    score.blogIds.push({
-      title,
-      blogId,
-      tags
-    });
-    const { error: scoreUploadError } = await supabase.storage.from("blogs").upload(scoreFileName, JSON.stringify(score, null, 2), {
-      contentType: "application/json",
-      upsert: true
-    });
-    if (scoreUploadError) throw scoreUploadError;
+
     return new Response(JSON.stringify({
       success: true,
       blog

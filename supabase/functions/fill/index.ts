@@ -117,7 +117,7 @@ Separate them with commas.
       output_cost: outputCost,
       total_cost: totalCost,
       user: user_id,
-      blog: blog_id
+
     }).select('id').single();
     if (logError) console.error("Failed to log generation:", logError);
     const generationId = generationData?.id;

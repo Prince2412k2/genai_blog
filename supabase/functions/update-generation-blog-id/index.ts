@@ -17,6 +17,20 @@ serve(async (req) => {
   try {
     const supabase = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
 
+    const jwt = req.headers.get("Authorization")?.replace("Bearer ", "");
+    const { data: userData, error: userError } = await supabase.auth.getUser(jwt);
+
+    if (userError || !userData.user) {
+      return new Response(JSON.stringify({
+        error: "Unauthorized"
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
+    const user_id = userData.user.id;
+
     const { generation_id, blog_id } = await req.json();
 
     if (!generation_id || !blog_id) {
@@ -28,9 +42,24 @@ serve(async (req) => {
       });
     }
 
+    // Verify ownership of the generation record
+    const { data: generation, error: generationError } = await supabase
+      .from("generation")
+      .select("user")
+      .eq("id", generation_id)
+      .single();
+
+    if (generationError || !generation) {
+        return new Response(JSON.stringify({ error: "Generation not found" }), { status: 404, headers: corsHeaders });
+    }
+
+    if (generation.user !== user_id) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 403, headers: corsHeaders });
+    }
+
     const { error } = await supabase
       .from("generation")
-      .update({ blog: blog_id })
+      .update({ blog_id: blog_id })
       .eq("id", generation_id);
 
     if (error) {

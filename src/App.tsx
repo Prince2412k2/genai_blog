@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/AdminDashboard";
 import BlogEditor from "./pages/BlogEditor";
 import NotFound from "./pages/NotFound";
+import PrivateRoute from './components/PrivateRoute';
 
 const queryClient = new QueryClient();
 
@@ -22,9 +23,11 @@ const App = () => (
           <Route path="/" element={<Blogs />} />
           <Route path="/blog/:id/:title" element={<BlogView />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/editor" element={<BlogEditor />} />
-          <Route path="/admin/editor/:id" element={<BlogEditor />} />
+          <Route element={<PrivateRoute />}>
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/editor" element={<BlogEditor />} />
+            <Route path="/admin/editor/:id" element={<BlogEditor />} />
+          </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

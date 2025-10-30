@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Blog } from '@/types/blog';
 
-import { supabase } from '@/integrations/supabase/client';
+import { getBlogs } from '@/lib/api'; // Import getBlogs
 import { useAuth } from '@/hooks/useAuth';
 import { PenSquare, LogIn, LogOut } from 'lucide-react';
 
@@ -21,8 +21,7 @@ const Blogs = () => {
 
   const loadBlogs = async () => {
     try {
-      const { data, error } = await supabase.from('blog').select('id, title, tags');
-      if (error) throw error;
+      const data = await getBlogs(); // Use getBlogs API function
       setBlogs(data.map(blog => ({ ...blog, blogId: blog.id })));
     } catch (error) {
       console.error('Failed to load blogs:', error);

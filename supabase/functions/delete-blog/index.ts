@@ -52,7 +52,7 @@ serve(async (req)=>{
         headers: corsHeaders
       });
     }
-    if (blog.user_id !== user_id) {
+    if (blog.user !== user_id) {
       return new Response(JSON.stringify({
         error: "Unauthorized"
       }), {
@@ -60,34 +60,10 @@ serve(async (req)=>{
         headers: corsHeaders
       });
     }
-    // Delete files from storage
-    const { error: rawDeleteError } = await supabase.storage.from("blogs").remove([
-      blog.raw_path
-    ]);
-    if (rawDeleteError) throw rawDeleteError;
-    const { error: htmlDeleteError } = await supabase.storage.from("blogs").remove([
-      blog.html_path
-    ]);
-    if (htmlDeleteError) throw htmlDeleteError;
     // Delete blog record
     const { error: dbDeleteError } = await supabase.from("blog").delete().eq("id", id);
     if (dbDeleteError) throw dbDeleteError;
-    // Update score.json
-    const scoreFile = "score.json";
-    const { data: scoreData, error: downloadError } = await supabase.storage.from("blogs").download(scoreFile);
-    if (scoreData) {
-      const text = await scoreData.text();
-      const score = JSON.parse(text);
-      const index = score.blogIds.indexOf(id);
-      if (index !== -1) score.blogIds.splice(index, 1);
-      score.total = Math.max(0, score.total - 1);
-      const { error: scoreUploadError } = await supabase.storage.from("blogs").upload(scoreFile, JSON.stringify(score), {
-        contentType: "application/json"
-      }, {
-        upsert: true
-      });
-      if (scoreUploadError) throw scoreUploadError;
-    }
+
     return new Response(JSON.stringify({
       success: true,
       deletedId: id

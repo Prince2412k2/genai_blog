@@ -39,12 +39,12 @@ export const generateBlog = async (summary: string, mood: string, userId: string
   return data;
 };
 
-export const updateBlog = async (blog: Blog, content: any): Promise<void> => {
+export const updateBlog = async (blog: Blog): Promise<void> => {
   const { data, error } = await supabase.functions.invoke('update-blog', {
     body: {
       id: blog.id,
       title: blog.title,
-      raw: content,
+      raw: blog.raw,
     },
   });
 
@@ -58,7 +58,7 @@ export const addBlog = async (blog: Partial<Blog>): Promise<Blog> => {
   const { data, error } = await supabase.functions.invoke('add-blog', {
     body: {
       title: blog.title,
-      raw: blog.content,
+      raw: blog.raw,
       tags: blog.tags,
     },
   });
@@ -75,7 +75,7 @@ import { createClient } from '@supabase/supabase-js';
 
 // ... other imports
 
-export const deleteBlog = async (id: string, userId?: string): Promise<void> => {
+export const deleteBlog = async (id: string): Promise<void> => {
   const { data, error } = await supabase.functions.invoke('delete-blog', {
     body: { id },
   });

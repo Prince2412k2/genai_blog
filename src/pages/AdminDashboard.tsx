@@ -69,7 +69,7 @@ const AdminDashboard = () => {
     if (!confirm('Are you sure you want to delete this blog?')) return;
 
     try {
-      await api.deleteBlog(id, user?.id);
+      await api.deleteBlog(id);
       toast({
         title: 'Success!',
         description: 'Blog deleted successfully',

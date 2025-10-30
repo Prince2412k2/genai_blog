@@ -64,9 +64,9 @@ const BlogEditor = () => {
       if (blogData) {
         setTitle(blogData.title);
         setTags(blogData.tags || []);
-        console.log(blogData.content)
-        if (blogData.content && editor) {
-          editor.replaceBlocks(editor.document, blogData.content);
+        if (blogData.raw && editor) {
+          const blocks = editor.tryParseMarkdownToBlocks(blogData.raw);
+          editor.replaceBlocks(editor.document, blocks);
         }
       }
     } catch (error) {
@@ -92,10 +92,29 @@ const BlogEditor = () => {
 
   const handleGenerateTags = async () => {
     if (!editor) return;
+
+    if (!user) {
+      toast({
+        title: 'Error',
+        description: 'You must be logged in to generate tags',
+        variant: 'destructive',
+      });
+      return;
+    }
     
     setIsGenerating(true);
     try {
-      const markdownContent = await editor.getMarkdown();
+      const markdownContent = editor.blocksToMarkdownLossy(editor.document);
+
+      if (!markdownContent.trim()) {
+        toast({
+          title: 'Error',
+          description: 'Cannot generate tags from empty content',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const tags = await api.getTagsFromMarkdown(markdownContent, user!.id, id); 
       setTags(tags || []);
       
@@ -104,6 +123,7 @@ const BlogEditor = () => {
         description: 'Tags generated from markdown content.',
       });
     } catch (error) {
+      console.error("Failed to generate tags:", error);
       toast({
         title: 'Error',
         description: 'Failed to generate tags',
@@ -175,29 +195,33 @@ const BlogEditor = () => {
     }
 
     try {
-      const content = editor.document;
+      const raw = editor.blocksToMarkdownLossy(editor.document);
       
       const blogData: Partial<Blog> = {
         title,
-        content: content,
+        raw: raw,
         tags,
       };
 
       if (id) {
-        await api.updateBlog({ ...blogData, id } as Blog, content);
+        await api.updateBlog({ ...blogData, id } as Blog);
         toast({
           title: 'Success!',
           description: 'Blog updated successfully',
         });
       } else {
-        await api.addBlog(blogData);
+        const newBlog = await api.addBlog(blogData);
         toast({
           title: 'Success!',
           description: 'Blog created successfully',
         });
+        if(newBlog && newBlog.id) {
+          navigate(`/admin/editor/${newBlog.id}`);
+        }
+        else {
+          navigate('/admin');
+        }
       }
-
-      navigate('/admin');
 
     } catch (error) {
       toast({

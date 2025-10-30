@@ -1,0 +1,1 @@
+ALTER TABLE public.generation ADD COLUMN blog_id UUID REFERENCES public.blog(id) ON DELETE SET NULL;

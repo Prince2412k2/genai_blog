@@ -66,11 +66,6 @@ Deno.serve(async (req)=>{
     }
 
     const blog = rows[0];
-    const { data: content, error: contentError } = await supabase.storage.from('blogs').download(blog.raw);
-    if (contentError) {
-      throw contentError;
-    }
-    blog.content = JSON.parse(await content.text());
 
     return new Response(JSON.stringify({
       success: true,

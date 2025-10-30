@@ -27,8 +27,21 @@ serve(async (req)=>{
         headers: corsHeaders
       });
     }
+
+    const jwt = req.headers.get("Authorization")?.replace("Bearer ", "");
+    const { data: userData, error: userError } = await supabase.auth.getUser(jwt);
+    if (userError || !userData.user) {
+      return new Response(JSON.stringify({
+        error: "Unauthorized"
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+    const user_id = userData.user.id;
+
     // ✅ Verify blog ownership
-    const { data: existingBlog, error: fetchError } = await supabase.from("blog").select("*").eq("id", id).single();
+    const { data: existingBlog, error: fetchError } = await supabase.from("blog").select("user").eq("id", id).single();
     if (fetchError || !existingBlog) {
       return new Response(JSON.stringify({
         error: "Blog not found"
@@ -37,15 +50,20 @@ serve(async (req)=>{
         headers: corsHeaders
       });
     }
-    // ✅ Upload updated content
-    const { error: uploadError } = await supabase.storage.from("blogs").upload(existingBlog.raw_path, JSON.stringify(raw), {
-      contentType: "application/json",
-      upsert: true
-    });
-    if (uploadError) throw uploadError;
+
+    if (existingBlog.user !== user_id) {
+      return new Response(JSON.stringify({
+        error: "Unauthorized"
+      }), {
+        status: 403,
+        headers: corsHeaders
+      });
+    }
+
     // ✅ Update DB
     const { data: updatedBlog, error: dbError } = await supabase.from("blog").update({
-      title
+      title,
+      raw
     }).eq("id", id).select().single();
     if (dbError) throw dbError;
     return new Response(JSON.stringify({
