@@ -95,8 +95,3 @@ To get a local copy up and running, follow these simple steps.
 ### Site Preview
 ![Site Preview](static/site.png)
 
-## License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
-*(We recommend you add a LICENSE file to your project.)*
