@@ -128,6 +128,15 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleEdit = (blog: Blog) => {
+    const searchParams = new URLSearchParams();
+    searchParams.set('title', blog.title);
+    if (blog.tags) {
+      searchParams.set('tags', blog.tags.join(','));
+    }
+    navigate(`/admin/editor/${blog.id || blog.blogId}?${searchParams.toString()}`);
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -280,7 +289,7 @@ const AdminDashboard = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => navigate(`/admin/editor/${blog.id || blog.blogId}`)}
+                              onClick={() => handleEdit(blog)}
                             >
                               <PenSquare className="h-4 w-4" />
                             </Button>

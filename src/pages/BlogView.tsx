@@ -16,7 +16,14 @@ const BlogView = () => {
   const [blog, setBlog] = useState<Blog | null>(null);
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const editor = useCreateBlockNote({ editable: false });
+  const editor = useCreateBlockNote({
+    editable: false,
+    domAttributes: {
+      block: {
+        class: "blog-editor-block",
+      },
+    },
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,8 +55,8 @@ const BlogView = () => {
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
-        <div className="flex justify-between items-center mb-8">
+      <div className="py-8">
+        <div className="flex justify-between items-center mb-6 px-4 sm:px-6">
           <Button
             variant="ghost"
             onClick={() => navigate(-1)}
@@ -63,17 +70,15 @@ const BlogView = () => {
           </Button>
         </div>
 
-        <article className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-lg shadow-2xl border ${theme === 'dark' ? 'border-primary/20' : 'border-primary/10'} p-8 md:p-12`}>
-          <header className="mb-8 border-b border-border pb-8">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-             {capitalizeFirstLetter(decodeURIComponent(title || ''))}
-            </h1>
-          </header>
+        <header className="mb-6 border-b border-border pb-6 px-4 sm:px-6">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+           {capitalizeFirstLetter(decodeURIComponent(title || ''))}
+          </h1>
+        </header>
 
-          <div className="prose prose-lg max-w-none dark:prose-invert">
-            <BlockNoteView editor={editor} editable={false} theme={theme} />
-          </div>
-        </article>
+        <div className="prose max-w-none dark:prose-invert px-4 sm:px-6">
+          <BlockNoteView editor={editor} editable={false} theme={theme} />
+        </div>
       </div>
     </div>
   );

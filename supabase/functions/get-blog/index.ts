@@ -67,6 +67,20 @@ Deno.serve(async (req)=>{
 
     const blog = rows[0];
 
+    // Fetch content from storage
+    const { data: contentData, error: contentError } = await supabase.storage
+      .from('blogs')
+      .download(`${blog.id}.json`);
+
+    if (contentError) {
+      // If the file doesn't exist, we can just return the blog without the content
+      // or return an error, depending on the desired behavior.
+      // For now, let's just log it and return the blog data.
+      console.error(`Failed to fetch content for blog ${blog.id}:`, contentError);
+    } else {
+      blog.content = await contentData.json();
+    }
+
     return new Response(JSON.stringify({
       success: true,
       blog: blog

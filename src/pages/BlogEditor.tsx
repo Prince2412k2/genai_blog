@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -42,9 +42,17 @@ const BlogEditor = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, session, loading } = useAuth();
 
-  const editor = useCreateBlockNote();
+  const editor = useCreateBlockNote({
+    domAttributes: {
+      block: {
+        class: "blog-editor-block",
+      },
+    },
+  });
+
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -52,29 +60,35 @@ const BlogEditor = () => {
       return;
     }
 
-    if (id) {
-      loadBlog();
-    }
-  }, [id, user, navigate, loading]);
+    const titleFromQuery = searchParams.get('title');
+    const tagsFromQuery = searchParams.get('tags');
 
-  const loadBlog = async () => {
+    if (titleFromQuery) {
+      setTitle(titleFromQuery);
+    }
+    if (tagsFromQuery) {
+      setTags(tagsFromQuery.split(','));
+    }
+
+    if (id) {
+      loadBlogContent();
+    }
+  }, [id, user, navigate, loading, searchParams]);
+
+  const loadBlogContent = async () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/blogs/${id}.json`);
       if (res.ok) {
-        const blogData = await res.json();
-        if (blogData) {
-          setTitle(blogData.title);
-          setTags(blogData.tags || []);
-          if (editor && blogData.content) {
-            editor.replaceBlocks(editor.document, blogData.content);
-          }
+        const content = await res.json();
+        if (editor && content) {
+          editor.replaceBlocks(editor.document, content);
         }
       }
     } catch (error) {
-      console.error('Failed to load blog:', error);
+      console.error('Failed to load blog content:', error);
       toast({
         title: 'Error',
-        description: 'Failed to load blog',
+        description: 'Failed to load blog content',
         variant: 'destructive',
       });
     }
@@ -247,8 +261,8 @@ const BlogEditor = () => {
         </div>
       )}
       <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/5">
-        <div className="container mx-auto px-4 py-6">
-          <div className="mb-6 flex items-center justify-between">
+        <div className="py-6">
+          <div className="mb-6 flex items-center justify-between px-4 sm:px-6">
             <Button variant="ghost" onClick={() => navigate('/admin')}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
@@ -343,11 +357,7 @@ const BlogEditor = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 backdrop-blur-sm border-primary/10">
-            <CardContent className="pt-6">
-              <BlockNoteView editor={editor} theme="light" />
-            </CardContent>
-          </Card>
+          <BlockNoteView editor={editor} theme="light" />
         </div>
       </div>
     </>
