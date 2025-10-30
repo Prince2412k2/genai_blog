@@ -38,8 +38,8 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <main className="container mx-auto px-4 py-20 text-center">
-        <h2 className="text-5xl md:text-7xl font-bold mb-4 leading-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+      <main className="container mx-auto px-4 py-12 sm:py-20 text-center">
+        <h2 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-4 leading-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
           Unleash Your Creativity with AI-Powered Blogging
         </h2>
         <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
@@ -54,9 +54,9 @@ const Index = () => {
       </main>
 
       {/* Features Section */}
-      <section className="py-20 bg-background/20">
+      <section className="py-12 sm:py-20 bg-background/20">
         <div className="container mx-auto px-4">
-          <h3 className="text-4xl font-bold text-center mb-12">Why Markdown Muse?</h3>
+          <h3 className="text-3xl sm:text-4xl font-bold text-center mb-12">Why Markdown Muse?</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="bg-card/50 backdrop-blur-sm border-primary/10 text-center">
