@@ -10,6 +10,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import BlogEditor from "./pages/BlogEditor";
 import NotFound from "./pages/NotFound";
 import PrivateRoute from './components/PrivateRoute';
+import UserBlog from './pages/UserBlog';
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/admin/editor" element={<BlogEditor />} />
             <Route path="/admin/editor/:id" element={<BlogEditor />} />
           </Route>
+          <Route path="/:userId" element={<UserBlog />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -15,9 +15,9 @@ serve(async (req) => {
   try {
     const supabase = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
 
-    const { title, raw, tags, content } = await req.json();
-    if (!title || !raw || !tags || !content) {
-      return new Response(JSON.stringify({ error: "Missing fields" }), { status: 400, headers: corsHeaders });
+    const { title } = await req.json();
+    if (!title) {
+      return new Response(JSON.stringify({ error: "Missing title" }), { status: 400, headers: corsHeaders });
     }
 
     const jwt = req.headers.get("Authorization")?.replace("Bearer ", "");
@@ -27,27 +27,6 @@ serve(async (req) => {
     }
     const userId = userData.user.id;
 
-    // 1. Insert into database
-    const { data: dbBlog, error: dbError } = await supabase
-      .from("blog")
-      .insert({ title, raw, tags, user: userId })
-      .select()
-      .single();
-    if (dbError) throw dbError;
-
-    const blogId = dbBlog.id;
-
-    // 2. Upload ProseMirror JSON to storage
-    const blogStorageObject = { title, tags, content };
-    const { error: storageError } = await supabase.storage
-      .from("blogs")
-      .upload(`${blogId}.json`, JSON.stringify(blogStorageObject, null, 2), {
-        contentType: "application/json",
-        upsert: true
-      });
-    if (storageError) throw storageError;
-
-    // 3. Update user's blog list
     const userBlogListFile = `${userId}.json`;
     let userBlogData = { title: "My Blog", blogs: [] };
     try {
@@ -56,20 +35,20 @@ serve(async (req) => {
         userBlogData = JSON.parse(await existingList.text());
       }
     } catch (e) {
-      // File might not exist, which is fine
+      // File might not exist, create a new one
     }
 
-    userBlogData.blogs.unshift({ id: blogId, title, tags });
+    userBlogData.title = title;
 
-    const { error: listUploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from("blogs")
       .upload(userBlogListFile, JSON.stringify(userBlogData, null, 2), {
         contentType: "application/json",
         upsert: true
       });
-    if (listUploadError) throw listUploadError;
+    if (uploadError) throw uploadError;
 
-    return new Response(JSON.stringify({ success: true, blog: dbBlog }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: true, title: userBlogData.title }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });

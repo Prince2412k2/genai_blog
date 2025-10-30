@@ -59,14 +59,15 @@ const BlogEditor = () => {
 
   const loadBlog = async () => {
     try {
-      const blogData = await api.getBlog(id!)
-
-      if (blogData) {
-        setTitle(blogData.title);
-        setTags(blogData.tags || []);
-        if (blogData.raw && editor) {
-          const blocks = editor.tryParseMarkdownToBlocks(blogData.raw);
-          editor.replaceBlocks(editor.document, blocks);
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/blogs/${id}.json`);
+      if (res.ok) {
+        const blogData = await res.json();
+        if (blogData) {
+          setTitle(blogData.title);
+          setTags(blogData.tags || []);
+          if (editor && blogData.content) {
+            editor.replaceBlocks(editor.document, blogData.content);
+          }
         }
       }
     } catch (error) {
@@ -196,10 +197,13 @@ const BlogEditor = () => {
 
     try {
       const raw = editor.blocksToMarkdownLossy(editor.document);
+      const content = editor.document;
       
+      console.log("Saving blog with title:", title);
       const blogData: Partial<Blog> = {
         title,
         raw: raw,
+        content: content,
         tags,
       };
 
@@ -341,7 +345,7 @@ const BlogEditor = () => {
 
           <Card className="bg-card/50 backdrop-blur-sm border-primary/10">
             <CardContent className="pt-6">
-              <BlockNoteView editor={editor} theme="light" />
+              <BlockNoteView editor={editor} theme="dark" />
             </CardContent>
           </Card>
         </div>

@@ -8,9 +8,14 @@ import { Blog } from '@/types/blog';
 import * as api from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { PenSquare, Trash2, Plus, LogOut, Eye } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { capitalizeFirstLetter } from '@/lib/utils';
 
 const AdminDashboard = () => {
+  const [blogSiteTitle, setBlogSiteTitle] = useState('My Blog');
+  const [newBlogSiteTitle, setNewBlogSiteTitle] = useState('');
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [totalGenerationCost, setTotalGenerationCost] = useState(0);
   const [totalInputTokens, setTotalInputTokens] = useState(0);
@@ -32,8 +37,27 @@ const AdminDashboard = () => {
 
   const loadBlogs = async () => {
     try {
-      const data = await api.getBlogs();
-      setBlogs(data);
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/blogs/${user!.id}.json`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          // Old format: just an array of blogs
+          setBlogs(data);
+        } else if (data && Array.isArray(data.blogs)) {
+          // New format: object with title and blogs array
+          setBlogSiteTitle(data.title || 'My Blog');
+          setNewBlogSiteTitle(data.title || 'My Blog');
+          setBlogs(data.blogs);
+        } else if (data && Array.isArray(data.blogIds)) {
+          // Older format: object with blogIds array
+          setBlogs(data.blogIds);
+        } else {
+          console.error("Fetched blog data is not in a recognized format:", data);
+          setBlogs([]);
+        }
+      } else {
+        setBlogs([]);
+      }
     } catch (error) {
       console.error('Failed to load blogs:', error);
       toast({
@@ -69,16 +93,36 @@ const AdminDashboard = () => {
     if (!confirm('Are you sure you want to delete this blog?')) return;
 
     try {
-      await api.deleteBlog(id);
+      const { error } = await supabase.functions.invoke('delete-blog', { body: { id } });
+      if (error) throw error;
+
       toast({
         title: 'Success!',
         description: 'Blog deleted successfully',
       });
-      loadBlogs();
+      loadBlogs(); // This will refetch the user's blog list JSON
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to delete blog',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleUpdateBlogSiteTitle = async () => {
+    try {
+      await api.updateUserBlogTitle(newBlogSiteTitle);
+      setBlogSiteTitle(newBlogSiteTitle);
+      toast({
+        title: 'Success!',
+        description: 'Blog site title updated successfully',
+      });
+    } catch (error) {
+      console.error('Failed to update blog site title:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update blog site title',
         variant: 'destructive',
       });
     }
@@ -101,7 +145,7 @@ const AdminDashboard = () => {
               Admin Dashboard
             </h1>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => navigate('/')}>
+              <Button variant="outline" onClick={() => navigate(`/${user?.id}`)}>
                 <Eye className="mr-2 h-4 w-4" />
                 View Site
               </Button>
@@ -116,7 +160,34 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <Card className="bg-card/50 backdrop-blur-sm border-primary/10">
+              <CardHeader>
+                <CardTitle className="text-sm text-muted-foreground">Your Public Blog URL</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <a href={`/${user?.id}`} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-primary hover:underline">
+                  {`${window.location.origin}/${user?.id}`}
+                </a>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card/50 backdrop-blur-sm border-primary/10">
+              <CardHeader>
+                <CardTitle className="text-sm text-muted-foreground">Blog Site Title</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex space-x-2">
+                  <Input
+                    value={capitalizeFirstLetter(newBlogSiteTitle)}
+                    onChange={(e) => setNewBlogSiteTitle(e.target.value)}
+                    placeholder="Enter blog site title"
+                  />
+                  <Button onClick={handleUpdateBlogSiteTitle}>Save</Button>
+                </div>
+              </CardContent>
+            </Card>
+            
             <Card className="bg-card/50 backdrop-blur-sm border-primary/10">
               <CardHeader>
                 <CardTitle className="text-sm text-muted-foreground">Total Blogs</CardTitle>
@@ -183,14 +254,12 @@ const AdminDashboard = () => {
                     <TableRow>
                       <TableHead>Title</TableHead>
                       <TableHead>Tags</TableHead>
-                      <TableHead>Cost</TableHead>
-                      <TableHead>Created</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {blogs.map((blog) => (
-                      <TableRow key={blog.id}>
+                      <TableRow key={blog.id || blog.blogId}>
                         <TableCell className="font-medium">{blog.title}</TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
@@ -206,23 +275,19 @@ const AdminDashboard = () => {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>{formatCurrency(blog.cost || 0)}</TableCell>
-                        <TableCell>
-                          {new Date(blog.created_at).toLocaleDateString()}
-                        </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => navigate(`/admin/editor/${blog.id}`)}
+                              onClick={() => navigate(`/admin/editor/${blog.id || blog.blogId}`)}
                             >
                               <PenSquare className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleDelete(blog.id)}
+                              onClick={() => handleDelete(blog.id || blog.blogId)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
