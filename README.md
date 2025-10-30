@@ -80,13 +80,20 @@ To get a local copy up and running, follow these simple steps.
 
 ## Screenshots
 
-| Landing Page | Dashboard |
-|---|---|
-| ![Landing Page](static/Landing.png) | ![Dashboard](static/Dashboard.png) |
-| Blog Editor | Blog View |
-| ![Blog Editor](static/blogEdit.png) | ![Blog View](static/blogView.png) |
-| Site Preview |
-| ![Site Preview](static/site.png) |
+### Landing Page
+![Landing Page](static/Landing.png)
+
+### Dashboard
+![Dashboard](static/Dashboard.png)
+
+### Blog Editor
+![Blog Editor](static/blogEdit.png)
+
+### Blog View
+![Blog View](static/blogView.png)
+
+### Site Preview
+![Site Preview](static/site.png)
 
 ## License
 
