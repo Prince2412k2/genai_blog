@@ -2,9 +2,9 @@
 
 Markdown Muse is a modern, AI-powered blog platform that allows users to create, manage, and publish their blogs with ease. It features a rich text editor, AI-powered content and tag generation, and a clean, responsive interface.
 
-**Live Demo:** [https://genai-blog-kappa.vercel.app](https://genai-blog-kappa.vercel.app)
+**Live Demo:** [https://md-muse.vercel.app](https://md-muse.vercel.app)
 
-**Example User Blog:** [https://genai-blog-kappa.vercel.app/be50b075-2d73-429b-88cf-0a6279de8ca5](https://genai-blog-kappa.vercel.app/be50b075-2d73-429b-88cf-0a6279de8ca5)
+**Example User Blog:** [https://md-muse.vercel.app/be50b075-2d73-429b-88cf-0a6279de8ca5](https://md-muse.vercel.app/be50b075-2d73-429b-88cf-0a6279de8ca5)
 
 ## Features
 
@@ -37,8 +37,8 @@ To get a local copy up and running, follow these simple steps.
 1.  **Clone the repo**
 
     ```sh
-    git clone https://github.com/your_username_/your_project_name.git
-    cd your_project_name
+    git clone https://github.com/Prince2412k2/genai_blog.git
+    cd genai_blog
     ```
 
 2.  **Install NPM packages**
@@ -80,7 +80,13 @@ To get a local copy up and running, follow these simple steps.
 
 ## Screenshots
 
-*(We recommend you add some screenshots of your application here to showcase its features and design.)*
+| Landing Page | Dashboard |
+|---|---|
+| ![Landing Page](static/Landing.png) | ![Dashboard](static/Dashboard.png) |
+| Blog Editor | Blog View |
+| ![Blog Editor](static/blogEdit.png) | ![Blog View](static/blogView.png) |
+| Site Preview |
+| ![Site Preview](static/site.png) |
 
 ## License
 
